@@ -1,6 +1,8 @@
 # CEvNS
 Code for calculating Coherent Elastic Neutrino-Nucleus Scattering (CEvNS) cross sections. Cross sections taken largely from [arXiv:1604.01025](https://arxiv.org/abs/1604.01025).
 
+See the **example code** in the iPython notebook (`CEvNS_example.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS_example.ipynb).
+
 Currently includes the Standard Model contribution to the CEvNS cross section, along with the contribution from the following Simplified Model Lagrangian:
 
 <img src="/L1.png" width="400">
@@ -23,5 +25,3 @@ where
 - (`A`, `Z`) are the mass and atomic number of the target nucleus
 - `g_med` is the mediator coupling to neutrinos and quarks (dimensionless)
 - `m_med` is the mediator mass (in MeV).
-
-See the **example code** in the iPython notebook (`CEvNS_example.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS_example.ipynb).
