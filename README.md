@@ -24,4 +24,4 @@ where
 - `g_med` is the mediator coupling to neutrinos and quarks (dimensionless)
 - `m_med` is the mediator mass (in MeV).
 
-See the *example code* in the iPython notebook (CEvNS_example.ipynb) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS_example.ipynb).
+See the *example code* in the iPython notebook (`CEvNS_example.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS_example.ipynb).
