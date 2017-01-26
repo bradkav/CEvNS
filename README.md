@@ -1,4 +1,6 @@
 # CEvNS
+[![Binder](http://mybinder.org/badge.svg)](http://mybinder.org:/repo/bradkav/cevns)
+
 Code for calculating Coherent Elastic Neutrino-Nucleus Scattering (CEvNS) cross sections. Cross sections taken largely from [arXiv:1604.01025](https://arxiv.org/abs/1604.01025).
 
 See the **example code** in the iPython notebook (`CEvNS_example.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS_example.ipynb).
