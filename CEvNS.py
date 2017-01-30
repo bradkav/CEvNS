@@ -1,11 +1,12 @@
 """
-CEvNS.py - Version 1 - 25/01/2017
+CEvNS.py - Version 1.1 - 30/01/2017
 
 Summary: 
 Code for calculating differential cross section
 for Coherent Elastic Neutrino Nucleus Scattering (CEvNS).
 
-Cross sections taken from arXiv:1604.01025
+Cross sections mainly taken from arXiv:1604.01025.
+See also arXiv:1701.07443.
 
 Author: Bradley J Kavanagh
 Please report any problems to: bradkav@gmail.com
@@ -64,10 +65,13 @@ def ERmax(E_nu, A):
 
 #----Main cross section calculation----
 
-def xsec_CEvNS(E_R, E_nu, A, Z, g_med=0.0, m_med=1000.0):
+def xsec_CEvNS(E_R, E_nu, A, Z, gVsq=0.0, gAsq=0.0, m_med=1000.0):
     """
     Calculates the differential cross section for
     Coherent Elastic Neutrino-Nucleus Scattering.
+    
+    Note: currently assuming couplings of Z'
+    to u and d quarks are equal.
     
     Parameters
     ----------
@@ -80,9 +84,14 @@ def xsec_CEvNS(E_R, E_nu, A, Z, g_med=0.0, m_med=1000.0):
     Z   : int
         Atomic number of target nucleus
 
-    g_med   : float, optional
-        Coupling of the new mediator to quarks and neutrinos
-        (assumed equal). Set to zero by default.
+    gVsq   : float, optional
+        Product of couplings of the new mediator to quark
+        vector current and neutrino VECTOR current. 
+        Set to zero by default.
+    gAsq   : float, optional
+        Product of couplings of the new mediator to quark
+        vector current and neutrino AXIAL-VECTOR current. 
+        Set to zero by default.
     m_med   : float, optional
         Mass of new mediator (in MeV). Set to 1000 MeV
         by default.
@@ -106,21 +115,15 @@ def xsec_CEvNS(E_R, E_nu, A, Z, g_med=0.0, m_med=1000.0):
     xsec_SM = (G_Fermi**2/(4.0*np.pi))*Qv**2*m_A*   \
         (1.0-(m_A*E_R)/(2.0*E_nu**2))
     
-    #Calculate Z' contribution
-    Qvp = 3.0*A*g_med**2
-    xsec_NP = -1e6*G_Fermi*m_A*Qv*Qvp*(2.0*E_nu**2 - E_R*m_A)  \
-        /(2*np.sqrt(2)*np.pi*E_nu**2*(2.0*E_R*m_A+m_med**2))
-    #Factor of 1e6 to get it into units of 1/GeV^3
-    
-    xsec_NP += 1e12*Qvp**2*m_A*(2.0*E_nu**2 - E_R*m_A)   \
-        /(4*np.pi*E_nu**2*(2.0*E_R*m_A+m_med**2)**2)
-    #Factor of 1e12 to get it into units of 1/GeV^3
-    
-    #Need to double check whether form factor appears for 
-    #the interference terms
+    #Calculate New-Physics correction from Z' coupling
+    #Assume universal coupling to quarks (u and d)
+    QvNP = 3.0*A*(gVsq - gAsq)
+
+    #Factor of 1e6 to from (GeV/MeV)^2
+    G_V = 1 - 1e6*(np.sqrt(2)/G_Fermi)*(QvNP/Qv)*1.0/(2.0*E_R*m_A+m_med**2)
     
     #Convert from (GeV^-3) to (cm^2/keV)
-    #and multiply by form factor
-    return (xsec_SM + xsec_NP)*1e-6*(1.98e-14)**2*HelmFormFactor(E_R, A)
+    #and multiply by form factor and New Physics correction
+    return G_V**2.0*xsec_SM*1e-6*(1.98e-14)**2*HelmFormFactor(E_R, A)
     
     
