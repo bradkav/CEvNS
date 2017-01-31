@@ -139,8 +139,8 @@ def xsec_CEvNS(E_R, E_nu, A, Z, gsq=0.0, m_med=1000.0):
 def loadNeutrinoFlux():
     global neutrino_flux
     
-    data = np.loadtxt("datafiles/neutrino_spectrum.txt")
-    normalisation = np.loadtxt("datafiles/ScaleConstants.txt")[0]
+    data = np.loadtxt("DataFiles/neutrino_spectrum.txt")
+    normalisation = np.loadtxt("DataFiles/ScaleConstants.txt")[0]
     
     #Factors of 1e-3 to convert from keV to MeV
     neutrino_flux = interp1d(1e-3*data[:,0], 1e3*data[:,1]*normalisation,\
