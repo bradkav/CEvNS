@@ -4,7 +4,7 @@
 
 Code for calculating Coherent Elastic Neutrino-Nucleus Scattering (CEvNS) cross sections. Cross sections taken largely from [arXiv:1604.01025](https://arxiv.org/abs/1604.01025) and [arXiv:1701.07443](https://arxiv.org/abs/1701.07443).
 
-See the **example code** in the iPython notebook (`index.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS_example.ipynb).
+See the **example code** in the iPython notebook (`index.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/index.ipynb).
 
 Currently includes the Standard Model contribution to the CEvNS cross section, along with the contribution from the following Simplified Model Lagrangian:
 
@@ -13,7 +13,7 @@ Currently includes the Standard Model contribution to the CEvNS cross section, a
 Note that the CEvNS cross section depends only on the product of g_v and g_q, so in the code the only coupling is called gsq and is the product of these two.
 
 **Version 1.0 (25/01/2017):** Initial code include SM contribution and vector current Simplified Model.
-**Version 1.1 (31/01/2017):** Updated to include reactor neutrino flux and calculate of the different neutrino-nucleus scattering rate.
+**Version 1.1 (31/01/2017):** Updated to include *reactor neutrino flux* and calculation of the differential neutrino-nucleus scattering rate.
 
 ###Using the code
 
