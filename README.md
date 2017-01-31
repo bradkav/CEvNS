@@ -13,6 +13,7 @@ Currently includes the Standard Model contribution to the CEvNS cross section, a
 Note that the CEvNS cross section depends only on the product of g_v and g_q, so in the code the only coupling is called gsq and is the product of these two.
 
 **Version 1.0 (25/01/2017):** Initial code include SM contribution and vector current Simplified Model.
+
 **Version 1.1 (31/01/2017):** Updated to include *reactor neutrino flux* and calculation of the differential neutrino-nucleus scattering rate.
 
 ###Using the code
