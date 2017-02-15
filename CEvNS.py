@@ -197,7 +197,7 @@ def loadNeutrinoFlux():
     
     
 #Calculate recoil rate (in events/kg/keV/day)
-def differentialRate_full(E_R, A, Z, gsq=0.0, m_med=1000.0, mu_nu=3.2e-11):
+def differentialRate_full(E_R, A, Z, gsq=0.0, m_med=1000.0, mu_nu=0.0):
     """
     Calculates the differential recoil rate for
     Coherent Elastic Neutrino-Nucleus Scattering
@@ -306,7 +306,7 @@ def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0):
     return 86400*rate #Convert from (per second) to (per day)
     
 #Calculate recoil rate (in events/kg/keV/day)
-def differentialRate_magnetic(E_R, A, Z, mu_nu=3.2e-11):
+def differentialRate_magnetic(E_R, A, Z, mu_nu=0.0):
     """
     Calculates the differential recoil rate for
     Coherent Elastic Neutrino-Nucleus Scattering
