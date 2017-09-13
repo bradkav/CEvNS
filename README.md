@@ -17,7 +17,7 @@ Note that the CEvNS cross section depends only on the product of g_v and g_q, so
 **Version 1.0 (25/01/2017):** Initial code include SM contribution and vector current Simplified Model.  
 
 
-###Using the code
+### Using the code
 
 Import the module `CEvNS.py`. This gives you access to the following functions for calculating the cross section and differential recoil rate. 
 
