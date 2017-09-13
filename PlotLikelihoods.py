@@ -1,5 +1,5 @@
 """
-LimitCalculator.py - 03/03/2017
+LimitCalculator.py - 13/03/2017
 
 Summary: 
 Tool for calculating rough limits on New Physics models 
@@ -16,8 +16,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize
 from scipy.integrate import quad, cumtrapz
-
+import profile
 import CEvNS
+import sys
+import emcee
 
 from tqdm import * #Progress Bar
 
@@ -54,33 +56,56 @@ E_max = 1  #keV
 #----Functions-----
 
 #Calculate number of signal events
-def CalcNevents(gsq=0.0, m_med=1000.0):
+def CalcNevents(gsq=0.0, m_med=1000.0, tab=False):
     
     integ = lambda x: CEvNS.differentialRate_CEvNS(x,\
-         A_Ge, Z_Ge, gsq, m_med)
+         A_Ge, Z_Ge, gsq, m_med, tab)
     return exposure*quad(integ, E_min, E_max, epsrel=1e-4)[0]
     
 def CalcLikelihood(gsq, m_med, event_list):
 
     #Poisson likelihood
     No = len(event_list)
-    Ne = CalcNevents(gsq, m_med)
+    Ne = CalcNevents(gsq, m_med, tab=True)
     PL = -Ne + No*np.log(Ne) 
     
     for i in range(No):
         PL += np.log(exposure*CEvNS.differentialRate_CEvNS(event_list[i],\
-         A_Ge, Z_Ge, gsq, m_med)/Ne)
+         A_Ge, Z_Ge, gsq, m_med,tab=True)/Ne)
     
-    return PL
+    return -PL
+    
+#Log prior
+def lnprior(lQ, lQmin=-15.0, lQmax=10.0):
+    if lQmin < lQ < lQmax:
+        return 0.0
+    return -np.inf
+    
+#Wrapper for emcee likelihood
+def lnprobBG(lQ, m_med, obs_events):
+    lp = lnprior(lQ)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + CalcLikelihood(10**lQ/(3.0*A_Ge), m_med, obs_events)
+    
+def lnprob(lQ, m_med, obs_events, L0, lQmin=-15.0, lQmax=10.0):
+    #95%
+    lp = lnprior(lQ, lQmin, lQmax)
+    if not np.isfinite(lp):
+        return -np.inf
+    X2crit = 2.71
+    return lp - (2.0*(CalcLikelihood(10**lQ/(3.0*A_Ge), m_med, obs_events)-L0) - X2crit)**2.0
+    
     
 def GenerateEvents(N_exp):
     No = np.random.poisson(lam=N_exp)
+    print " N_obs = ", No
     events = np.zeros(No)
     
     Rmax = CEvNS.differentialRate_CEvNS(E_min,A_Ge, Z_Ge)
     
     #Get the inverse cumulative distribution
-    Evals = np.linspace(E_min, E_max, 100)
+    Evals = np.logspace(np.log10(E_min), np.log10(E_max), 100)
     dRdE = np.vectorize(CEvNS.differentialRate_CEvNS)
     Rvals = dRdE(Evals,A_Ge, Z_Ge)
     Rcum = cumtrapz(Rvals, Evals, initial=0.0)
@@ -102,18 +127,6 @@ def GenerateEvents(N_exp):
         events[i] = x
        return events
     """
- 
-def GetLimit(m_med, event_list):
-    L0 = CalcLikelihood(0, m_med, event_list)
-    
-    #Critical value for one sided test is:
-    
-    #95%
-    X2crit = 2.71
-    
-    fobj = lambda lg: (2*(L0-CalcLikelihood((10**lg)**2, m_med, event_list))- X2crit)**2
-    res = minimize(fobj,-6, method="Nelder-Mead") 
-    return 10**res.x
     
 def GetLimit_brute(m_med, event_list):
     Nsamps = 50
@@ -137,61 +150,64 @@ def GetLimit_brute(m_med, event_list):
     
     return np.min(Q_list[lnL > 3.84])
     
+
     
 #----Main Procedure----
 print "****************************"
-print "*    LimitCalculator.py    *"
+print "*    PlotLikelihoods.py    *"
 print "****************************"
 print " "
-print " Calculating Z-prime limits..."
+print " Plotting some example likelihoods..."
+
+# See 1701.07443 - perturbativity limit!
+Qmax = 4.0*np.pi*3*A_Ge
 
 Nobs1 =  CalcNevents()
 print " Number of events (SM-only): ", Nobs1
-print " Calculate (and plots) likelihood as a function of g..."
+mV = 1e6
+CEvNS.differentialRate_tabulate(E_min, E_max, A_Ge, Z_Ge, m_med=mV)
 
-m_V = 1000 #MeV
+#Calculate Qstar
+Nplus = CalcNevents(gsq=1.0, tab=True)
+Nminus = CalcNevents(gsq=-1.0, tab=True)
+Qstar = -3*A_Ge*0.25*(Nplus - Nminus)/(0.5*(Nplus + Nminus) - CalcNevents(gsq=0.0, tab=True))
+#print Qstar
 
-obs_events = GenerateEvents(Nobs1)
+obs_events = GenerateEvents(Nobs1+50)
+#Qvals = np.logspace(-6.0, np.log10(Qmax), 200)
+Qvals = np.logspace(-1.0, np.log10(Qmax), 200)
+Ctab = 0.0*Qvals
+Nlist = 0.0*Qvals
+#Ctrue = 0.0*Evals
+for i, Q in enumerate(Qvals):
+    Ctab[i] = CalcLikelihood(Q/(3.0*A_Ge), mV, obs_events)
+    Nlist[i] = CalcNevents(Q/(3.0*A_Ge), m_med=mV, tab=True)
+    
+fig, ax1 = pl.subplots()
 
-Elist = np.linspace(0.1, 1.0, 100)
+Ctab = 2.0*(Ctab - np.min(Ctab))
 
-print CalcNevents(gsq=1.456363040986020291e-05/(3.0*A_Ge), m_med=1000.0)
+ax1.semilogx(Qvals, Ctab, 'b')
+ax1.set_ylim(-1, 1000)
+ax1.set_ylabel("-2 lnL", color='b')
+ax1.set_xlabel(r"$Q_{Z'}$")
+ax1.tick_params('y', colors='b')
+ax1.axhline(0, linestyle="--")
+ax1.axvline(4.0*np.pi*3*A_Ge, linestyle='-', color='k', linewidth=2.0)
+ax1.axvline(Qstar, linestyle='--', color='k', linewidth=1.0)
 
-#Nbins = 9
-#pl.figure()
-#pl.hist(obs_events, bins=np.linspace(0.1, 1.0, Nbins+1))
-#dRdE = np.vectorize(CEvNS.differentialRate_CEvNS)
-#Rvals = dRdE(Elist,A_Ge, Z_Ge)
-#pl.plot(Elist,1000*Rvals*1.0/Nbins)
-#pl.show()
+ax1.fill_between(Qvals, Ctab, where=Ctab > 2.71, alpha=0.5)
 
-Nvals = 11
+ax2 = ax1.twinx()
+ax2.semilogx(Qvals, Nlist, 'r')
+ax2.set_ylim(0, 1000)
+ax2.set_ylabel("# of events", color='r')
+ax2.tick_params('y', colors='r')
 
-mVlist = np.logspace(-3, 7, Nvals)
-limlist = mVlist*0.0
-for i in tqdm(range(Nvals)):
-    limlist[i] = GetLimit_brute(mVlist[i], obs_events)
+ax1.set_title("Mediator mass = 1e7 MeV; Typical", fontsize=12)
 
-np.savetxt("ApproxLimits.txt", zip(mVlist, limlist), header="Ricochet Z-prime limit, 0.1keV Threshold, 1000 kg day Exposure")
+pl.tight_layout()
 
-#Nsamps = 50
-#g_list = np.logspace(-9, -1, Nsamps)
+#pl.savefig("Typical.pdf")
 
-#glim = GetLimit(m_V, obs_events)
-#print glim
-
-#L0 = CalcLikelihood(0, m_V, obs_events)
-
-#Lvals = g_list*0.0
-#for i in tqdm(range(Nsamps)):
-#    Lvals[i] = CalcLikelihood(g_list[i]**2.0, m_V, obs_events)
-
-#print Lvals
-
-#print " lnL(g = 0) = ", L0
-#print " lnL_max = ", np.max(Lvals)
-
-#pl.figure()
-#pl.loglog(g_list, -2*(Lvals-np.max(Lvals)))
-#pl.axhline(3.84, linestyle=":")
-#pl.show()
+pl.show()

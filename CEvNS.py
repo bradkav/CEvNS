@@ -1,5 +1,5 @@
 """
-CEvNS.py - Version 1.2 - 15/02/2017
+CEvNS.py - Version 1.3 - 13/09/2017
 
 Summary: 
 Code for calculating differential cross section
@@ -17,7 +17,7 @@ Please report any problems to: bradkav@gmail.com
 """
 
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, UnivariateSpline,InterpolatedUnivariateSpline
 from scipy.integrate import quad
 
 #----Notes-----
@@ -32,12 +32,18 @@ for solar and reactor neutrinos).
 G_FERMI = 1.1664e-5     #Fermi Constant in GeV^-2
 SIN2THETAW = 0.2387     #Sine-squared of the weak angle
 ALPHA_EM = 0.007297353  #EM Fine structure constant
-m_e = 0.5109989461e-3   #Electron mass in GeV    
+m_e = 0.5109989461e-3   #Electron mass in GeV  
+SQRT2 = np.sqrt(2.0)  
 
 
 #----Module-scope variables----
 neutrino_flux = None
+diffrate_A = None
+diffrate_B = None
 
+
+Enu_min = 0
+Enu_max = 0
 
 #----Some functions----
 
@@ -60,9 +66,9 @@ def HelmFormFactor(E, A):
  
     #Calculate form factor
     x = q2*R1
-    J1 = np.sin(x)/x**2 - np.cos(x)/x
+    J1 = np.sin(x)/(x*x) - np.cos(x)/x
     F = 3*J1/x
-    return (F**2)*(np.exp(-(q2*s)**2))
+    return (F*F)*(np.exp(-(q2*q2*s*s)))
 
 
 #Maximum nuclear recoil energy (in keV)
@@ -73,7 +79,7 @@ def ERmax(E_nu, A):
     
     #return 1e3*2.0*E_nu**2/m_N_MeV
     
-    return 1e3*(2*E_nu**2)/(m_A_MeV + 2*E_nu)
+    return 1e3*(2.0*E_nu*E_nu)/(m_A_MeV + 2*E_nu)
 
 
 #----Main cross section calculation----
@@ -81,7 +87,8 @@ def ERmax(E_nu, A):
 def xsec_CEvNS(E_R, E_nu, A, Z, gsq=0.0, m_med=1000.0):
     """
     Calculates the differential cross section for
-    Coherent Elastic Neutrino-Nucleus Scattering.
+    Coherent Elastic Neutrino-Nucleus Scattering
+    including a new Z' mediator.
     
     Note: currently assuming couplings of Z'
     to u and d quarks are equal.
@@ -102,7 +109,7 @@ def xsec_CEvNS(E_R, E_nu, A, Z, gsq=0.0, m_med=1000.0):
         vector current and LH-neutrino VECTOR current. 
         Set to zero by default.
     m_med   : float, optional
-        Mass of new mediator (in MeV). Set to 1000 MeV
+        Mass of new vector mediator (in MeV). Set to 1000 MeV
         by default.
     
     
@@ -120,19 +127,19 @@ def xsec_CEvNS(E_R, E_nu, A, Z, gsq=0.0, m_med=1000.0):
     #Calculate SM contribution
     Qv = (A-Z) - (1.0-4.0*SIN2THETAW)*Z #Coherence factor
     
-    xsec_SM = (G_FERMI**2/(4.0*np.pi))*Qv**2*m_A*   \
-        (1.0-(q**2)/(4.0*E_nu**2))
+    xsec_SM = (G_FERMI*G_FERMI/(4.0*np.pi))*Qv*Qv*m_A*   \
+        (1.0-(q*q)/(4.0*E_nu*E_nu))
     
     #Calculate New-Physics correction from Z' coupling
     #Assume universal coupling to quarks (u and d)
     QvNP = 3.0*A*gsq
 
     #Factor of 1e6 from (GeV/MeV)^2
-    G_V = 1 - 1e6*(np.sqrt(2)/G_FERMI)*(QvNP/Qv)*1.0/(q**2 + m_med**2)
+    G_V = 1 - 1e6*(SQRT2/G_FERMI)*(QvNP/Qv)*1.0/(q*q + m_med*m_med)
     
     #Convert from (GeV^-3) to (cm^2/keV)
     #and multiply by form factor and New Physics correction
-    return G_V**2.0*xsec_SM*1e-6*(1.98e-14)**2*HelmFormFactor(E_R, A)
+    return G_V*G_V*xsec_SM*1e-6*(1.98e-14)*(1.98e-14)*HelmFormFactor(E_R, A)
     
     
 def xsec_magneticNS(E_R, E_nu, A, Z, mu_nu=0.0):
@@ -179,6 +186,111 @@ def xsec_magneticNS(E_R, E_nu, A, Z, mu_nu=0.0):
     #and multiply by form factor and coherent charge enhancement
     return 1e-6*(1.98e-14)**2*xsec_mag*(Z**2*HelmFormFactor(E_R, A))
     
+def xsec_scalar(E_R, E_nu, A, Z, Q_S=0.0, m_S=1000.0):
+    """
+    Calculates contribution to the differential cross section for
+    Coherent Elastic Neutrino-Nucleus Scattering from
+    a new scalar mediator.
+    
+    See arXiv:1701.07443 - Eq. (3.6)
+    
+    Parameters
+    ----------
+    E_R : float
+        Recoil energy (in keV)
+    E_nu : float
+        Neutrino energy (in MeV)
+    A   : int
+        Mass number of target nucleus
+    Z   : int
+        Atomic number of target nucleus
+
+    G_S   : float, optional
+        Scalar charge of the nucleus
+    
+    m_S   : float, optional
+        Mass of new scalar mediator (in MeV). Set to 1000 MeV
+        by default.
+  
+    
+    Returns
+    -------
+    float
+        Differential scattering cross section 
+        (in cm^2/keV)
+    """
+    
+    #Note: m_A in GeV, E_R in keV, E_nu in MeV
+    
+    m_A = A*0.9315 #Mass of target nucleus (in GeV)
+    q = np.sqrt(2.0*E_R*m_A) #Recoil momentum (in MeV)
+    #Note: m_A in GeV, E_R in keV, E_nu in MeV
+    
+    #Calculate total scalar charge of the nucleus
+    #G_S = Q_S*1.0/(1e-6*G_FERMI*m_S**2)
+    
+    xsec_scalar = (E_R/(4.0*np.pi))*m_A**2/(E_nu**2*(q**2 + m_S**2)**2)
+    
+    # keV/MeV = 1e-3
+        
+    # (MeV)^-1 = (1e-3 GeV)^-1 = 1e3 GeV^-1
+    
+    # MeV^-2 keV GeV^-2 = GeV^-3
+    
+    #Convert from (keV GeV^2 MeV^-6) to (cm^2/keV)
+    #and multiply by form factor and New Physics correction
+    return Q_S*Q_S*xsec_scalar*1e6*(1.98e-14)*(1.98e-14)*HelmFormFactor(E_R, A)
+    
+    
+def xsec_NSI(E_R, E_nu, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_tau=0, Eps_d_tau=0):
+    """
+    Calculates the differential cross section for
+    Coherent Elastic Neutrino-Nucleus Scattering
+    including Non-standard Neutrino interactions (NSI)
+    
+    
+    Parameters
+    ----------
+    E_R : float
+        Recoil energy (in keV)
+    E_nu : float
+        Neutrino energy (in MeV)
+    A   : int
+        Mass number of target nucleus
+    Z   : int
+        Atomic number of target nucleus
+
+    Eps_X_Y   : float
+        NSI coupling epsilson to X type quarks (X = u, d).
+        Y = e, mu, tau specifies the final neutrino flavour. 
+        For flavour-conserving (i.e. nu_e -> nu_e) Y = e.
+        For flavour-changing (e.g. nu_e -> nu_tau) Y = mu, tau.
+    
+    
+    Returns
+    -------
+    float
+        Differential scattering cross section 
+        (in cm^2/keV)
+    """
+    
+    m_A = A*0.9315 #Mass of target nucleus (in GeV)
+    q = np.sqrt(2.0*E_R*m_A) #Recoil momentum (in MeV)
+    #Note: m_A in GeV, E_R in keV, E_nu in MeV
+    
+    #Calculate NSI charge
+    Q_NSI_sq = 4*((A-Z)*(-0.5 + Eps_u_e + 2*Eps_d_e) + Z*(0.5 - 2.0*SIN2THETAW + 2*Eps_u_e + Eps_d_e))**2
+    Q_NSI_sq += 4*((A-Z)*(Eps_u_mu + 2*Eps_d_mu) + Z*(2*Eps_u_mu + Eps_d_mu))**2
+    Q_NSI_sq += 4*((A-Z)*(Eps_u_tau + 2*Eps_d_tau) + Z*(2*Eps_u_tau + Eps_d_tau))**2
+    
+    xsec_NSI = (G_FERMI*G_FERMI/(4.0*np.pi))*Q_NSI_sq*m_A*   \
+        (1.0-(q*q)/(4.0*E_nu*E_nu))
+    
+    #Convert from (GeV^-3) to (cm^2/keV)
+    #and multiply by form factor and New Physics correction
+    return xsec_NSI*1e-6*(1.98e-14)*(1.98e-14)*HelmFormFactor(E_R, A)
+    
+    
     
 #----Nuclear-scattering rate calculation----
 
@@ -187,13 +299,19 @@ def xsec_magneticNS(E_R, E_nu, A, Z, mu_nu=0.0):
 #(with input E, in MeV)
 def loadNeutrinoFlux():
     global neutrino_flux
+    global Enu_min
+    global Enu_max
     
     data = np.loadtxt("DataFiles/neutrino_spectrum.txt")
-    normalisation = np.loadtxt("DataFiles/ScaleConstants.txt")[0]
     
+    normalisation = np.loadtxt("DataFiles/ScaleConstants.txt")[0]
     #Factors of 1e-3 to convert from keV to MeV
-    neutrino_flux = interp1d(1e-3*data[:,0], 1e3*data[:,1]*normalisation,\
-            bounds_error=False, fill_value=0)
+
+    neutrino_flux = InterpolatedUnivariateSpline(1e-3*data[:,0], 1e3*data[:,1]*normalisation, k = 1)
+            #bounds_error=False, fill_value=1e-20)
+    Enu_min = 1e-3*np.min(data[:,0])
+    Enu_max = 1e-3*np.max(data[:,0])
+    #print Enu_min, Enu_max
     
     
 #Calculate recoil rate (in events/kg/keV/day)
@@ -250,7 +368,7 @@ def differentialRate_full(E_R, A, Z, gsq=0.0, m_med=1000.0, mu_nu=0.0):
     
     
 #Calculate recoil rate (in events/kg/keV/day)
-def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0):
+def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0, tab=False):
     """
     Calculates the differential recoil rate for
     Coherent Elastic Neutrino-Nucleus Scattering
@@ -287,9 +405,17 @@ def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0):
         (in /kg/keV/day)
     """
     
+    #Use tabulated values if requested. 
+    #Note: no bounds checking, or checking if tabulation is alread done!
+    if (tab):
+        A1 = diffrate_A(E_R)
+        B1 = diffrate_B(E_R)
+        return (A1 + B1*gsq)**2.0
+    
     
     #First, check that the neutrino flux has been loaded
     if (neutrino_flux == None):
+        print " CEvNS.py: Loading neutrino flux for the first time..."
         loadNeutrinoFlux()
     
     integrand = lambda E_nu: xsec_CEvNS(E_R, E_nu, A, Z, gsq, m_med)\
@@ -298,12 +424,128 @@ def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0):
     #Minimum neutrino energy required (in MeV)
     E_min = np.sqrt(A*0.9315*E_R/2)
     
+    E_min = np.maximum(E_min, Enu_min)
+    
     #For reactor neutrinos, set E_max:
-    E_max = 11.0
+    E_max = Enu_max
+    
+    if (E_min > E_max):
+        return 0
     
     m_N = A*1.66054e-27 #Nucleus mass in kg
-    rate = quad(integrand, E_min, E_max)[0]/m_N
-    return 86400*rate #Convert from (per second) to (per day)
+    rate = quad(integrand, E_min, E_max, epsrel=1e-4)[0]/m_N
+    return 86400.0*rate #Convert from (per second) to (per day)
+    
+#Calculate recoil rate (in events/kg/keV/day)
+def differentialRate_NSI(E_R, A, Z, gsq=0.0, m_med=1000.0, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_tau=0, Eps_d_tau=0):
+    """
+    Calculates the differential recoil rate for
+    Coherent Elastic Neutrino-Nucleus Scattering
+    from Chooz reactor neutrinos (including 
+    Non-standard Neutrino interactions (NSI)).
+    
+    Checks to see whether the neutrino flux table
+    has been loaded (and loads it if not...)
+    
+    Parameters
+    ----------
+    E_R : float
+        Recoil energy (in keV)
+    A   : int
+        Mass number of target nucleus
+    Z   : int
+        Atomic number of target nucleus
+
+    Eps_X_Y   : float
+        NSI coupling epsilson to X type quarks (X = u, d).
+        Y = e, mu, tau specifies the final neutrino flavour. 
+        For flavour-conserving (i.e. nu_e -> nu_e) Y = e.
+        For flavour-changing (e.g. nu_e -> nu_tau) Y = mu, tau.
+    
+    
+    Returns
+    -------
+    float
+        Differential recoil rate
+        (in /kg/keV/day)
+    """    
+    
+    #First, check that the neutrino flux has been loaded
+    if (neutrino_flux == None):
+        print " CEvNS.py: Loading neutrino flux for the first time..."
+        loadNeutrinoFlux()
+    
+    integrand = lambda E_nu: xsec_NSI(E_R, E_nu, A, Z, Eps_u_e, Eps_d_e,\
+                                 Eps_u_mu, Eps_d_mu, Eps_u_tau, Eps_d_tau)\
+                                 *neutrino_flux(E_nu)
+    
+    #Minimum neutrino energy required (in MeV)
+    E_min = np.sqrt(A*0.9315*E_R/2)
+    
+    E_min = np.maximum(E_min, Enu_min)
+    
+    #For reactor neutrinos, set E_max:
+    E_max = Enu_max
+    
+    if (E_min > E_max):
+        return 0
+    
+    m_N = A*1.66054e-27 #Nucleus mass in kg
+    rate = quad(integrand, E_min, E_max, epsrel=1e-4)[0]/m_N
+    return 86400.0*rate #Convert from (per second) to (per day)
+    
+#Calculate recoil rate (in events/kg/keV/day)
+def differentialRate_scalar(E_R, A, Z, Q_S=0.0, m_S=1000.0, tab=False):
+    """
+
+    
+    Parameters
+    ----------
+    E_R : float
+        Recoil energy (in keV)
+    A   : int
+        Mass number of target nucleus
+    Z   : int
+        Atomic number of target nucleus
+
+    Q_S   : float, optional
+        ...
+    m_S   : float, optional
+        ...
+    
+    
+    Returns
+    -------
+    float
+        Differential recoil rate
+        (in /kg/keV/day)
+    """
+    
+    #First, check that the neutrino flux has been loaded
+    if (neutrino_flux == None):
+        print " CEvNS.py: Loading neutrino flux for the first time..."
+        loadNeutrinoFlux()
+    
+    integrand = lambda E_nu: xsec_scalar(E_R, E_nu, A, Z, Q_S, m_S)\
+                        *neutrino_flux(E_nu)
+    
+    #Minimum neutrino energy required (in MeV)
+    E_min = np.sqrt(A*0.9315*E_R/2)
+    
+    E_min = np.maximum(E_min, Enu_min)
+    
+    #For reactor neutrinos, set E_max:
+    E_max = Enu_max
+    
+    #For reactor neutrinos, set E_max:
+    E_max = 10.0
+    
+    if (E_min > E_max):
+        return 0
+    
+    m_N = A*1.66054e-27 #Nucleus mass in kg
+    rate = quad(integrand, E_min, E_max, epsrel=1e-4)[0]/m_N
+    return 86400.0*rate #Convert from (per second) to (per day)
     
 #Calculate recoil rate (in events/kg/keV/day)
 def differentialRate_magnetic(E_R, A, Z, mu_nu=0.0):
@@ -350,10 +592,40 @@ def differentialRate_magnetic(E_R, A, Z, mu_nu=0.0):
     #Minimum neutrino energy required (in MeV)
     E_min = np.sqrt(A*0.9315*E_R/2)
     
+    E_min = np.maximum(E_min, Enu_min)
+    
     #For reactor neutrinos, set E_max:
-    E_max = 11.0
+    E_max = Enu_max
+    
+    if (E_min > E_max):
+        return 0
     
     m_N = A*1.66054e-27 #Nucleus mass in kg
     rate = quad(integrand, E_min, E_max)[0]/m_N
     return 86400*rate #Convert from (per second) to (per day)
+    
+#-----------------
+def differentialRate_tabulate(E_min, E_max, A, Z, m_med=1000.0):
+    global diffrate_A, diffrate_B
+    
+    print " Tabulating dR/dE for m_med =", '%.2e' % m_med, "MeV..."
+    Evals = np.logspace(np.log10(E_min), np.log10(E_max),1000)
+    
+    Rvals_A = 0.0*Evals
+    Rvals_B = 0.0*Evals
+    alpha = 1.0
+    for i, Ei in enumerate(Evals):
+        Rvals_A[i] = np.sqrt(differentialRate_CEvNS(Ei, A, Z, gsq=0.0, m_med=m_med))
+        Rvals_B[i] = (1.0/(4.0*alpha*Rvals_A[i]))*(\
+                        differentialRate_CEvNS(Ei, A, Z, gsq=alpha, m_med=m_med) - \
+                        differentialRate_CEvNS(Ei, A, Z, gsq=-alpha, m_med=m_med))
+        #Check signs!
+        #Rvals_B[i] = np.sqrt(differentialRate_CEvNS(Ei, A, Z, gsq=Rvals_A[i], m_med=m_med))*1.0/Rvals_A[i] - 1.0      
+   
+    diffrate_A = InterpolatedUnivariateSpline(Evals, Rvals_A, k = 1)
+    diffrate_B = InterpolatedUnivariateSpline(Evals, Rvals_B, k = 1)
+    
+    
+    
+    
     
