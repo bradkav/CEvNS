@@ -6,11 +6,11 @@ Code for calculating Coherent Elastic Neutrino-Nucleus Scattering (CEvNS) cross 
 
 See the **example code** in the iPython notebook (`CEvNS-examples.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS-examples.ipynb) or click the 'Launch Binder' button to view an interactive notebook. For working with the **recent COHERENT data** ([arXiv:1708.01294](https://arxiv.org/abs/1708.01294)), check out the notebook `COHERENT.ipynb` [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/COHERENT.ipynb).
 
-Currently includes the Standard Model contribution to the CEvNS cross section, along with the contribution from the following Simplified Model Lagrangian:
+Currently includes (amonth other things) the Standard Model contribution to the CEvNS cross section, along with the contribution from the following Simplified Model Lagrangian:
 
 <img src="/L1.png" width="400">
 
-Note that the CEvNS cross section depends only on the product of g_v and g_q, so in the code the only coupling is called gsq and is the product of these two.
+Note that the CEvNS cross section depends only on the product of g_v and g_q, so in the code the only coupling is called gsq and is the product of these two. More interactions (magnetic moments, scalar mediators, etc.) are being added.
 
 If you are using the NSI rate, you do not need to add the Standard Model rate too - the NSI rate includes (and modifies) the normalisation of Standard Model CEvNS.
 
