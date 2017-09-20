@@ -14,6 +14,7 @@ Note that the CEvNS cross section depends only on the product of g_v and g_q, so
 
 If you are using the NSI rate, you do not need to add the Standard Model rate too - the NSI rate includes (and modifies) the normalisation of Standard Model CEvNS.
 
+**Version 1.4 (20/09/2017):** Now includes COHERENT@SNS fluxes (simply use `loadNeutrinoFlux("SNS")` to initialise). Results from the COHERENT experiment are reproduced in the notebook `COHERENT.ipynb`.  
 **Version 1.3 (13/09/2017):** Updated to calculate rate including NSI interactions.  
 **Version 1.2 (15/02/2017):** Updated to include contribution to nuclear scattering from 'neutrino magnetic moment'-'nuclear charge' coupling.  
 **Version 1.1 (31/01/2017):** Updated to include *reactor neutrino flux* and calculation of the differential neutrino-nucleus scattering rate.  
@@ -71,3 +72,7 @@ Contribution from neutrino magnetic moment:
 
 Full contribution from vector exchange and magnetic moment:  
 `differentialRate_full(E_R, A, Z, gsq=0.0, m_med=1000.0,mu_nu=0.0)`
+
+#### Neutrino fluxes
+
+Before you can calculate the differential rates, you need to load an appropriate set of neutrino fluxes using `loadNeutrinoFlux(source)`. There are two options for `source`: `"CHOOZ"` (for the CHOOZ reactor) and `"SNS"` (for the Spallation Neutron Source where COHERENT is located). `"CHOOZ"` is the default choice, and if you don't call `loadNeutrinoFlux` before you try to calculate a differential rate, the CHOOZ neutrino flux is automatically loaded.

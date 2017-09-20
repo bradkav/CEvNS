@@ -1,9 +1,11 @@
 """
-CEvNS.py - Version 1.3 - 13/09/2017
+CEvNS.py - Version 1.4 - 20/09/2017
 
 Summary: 
 Code for calculating differential cross section
 for Coherent Elastic Neutrino Nucleus Scattering (CEvNS).
+
+Version 1.4: Added neutrino fluxes for COHERENT@SNS
 
 Cross sections mainly taken from arXiv:1604.01025.
 See also arXiv:1701.07443.
@@ -41,6 +43,7 @@ neutrino_flux = None
 diffrate_A = None
 diffrate_B = None
 
+nu_source = None
 
 Enu_min = 0
 Enu_max = 0
@@ -297,22 +300,54 @@ def xsec_NSI(E_R, E_nu, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_ta
 #Load neutrino fluxes and save as interpolation function
 #(neutrino_flux) in units of neutrinos/cm^2/s/MeV 
 #(with input E, in MeV)
-def loadNeutrinoFlux():
+def loadNeutrinoFlux(source="CHOOZ"):
     global neutrino_flux
     global Enu_min
     global Enu_max
+    global nu_source
     
-    data = np.loadtxt("DataFiles/neutrino_spectrum.txt")
+    nu_source = source
     
-    normalisation = np.loadtxt("DataFiles/ScaleConstants.txt")[0]
-    #Factors of 1e-3 to convert from keV to MeV
+    if (source == "CHOOZ"):
+        data = np.loadtxt("DataFiles/neutrino_spectrum.txt")
+    
+        #Factor of 0.9 in normalisation comes from Reactor up-time
+        normalisation = np.loadtxt("DataFiles/ScaleConstants.txt")[0]
+        #Factors of 1e-3 to convert from keV to MeV
+        #Only use every 10th value!
+        neutrino_flux = InterpolatedUnivariateSpline(1e-3*data[:,0], 1e3*data[:,1]*normalisation, k = 1)
+                #bounds_error=False, fill_value=1e-20)
+        Enu_min = 1e-3*np.min(data[:,0])
+        Enu_max = 1e-3*np.max(data[:,0])
+        #print Enu_min, Enu_max
+        
+    elif (source == "SNS"):
+        #0.08 decay-at-rest (DAR) neutrinos per proton
+        #5e20 protons per day (divided by 24*60*60 to get per second)
+        #COHERENT detector at a distance of 19.3m from neutrino production point
+        #so 4pi surface area is 4pi*19.3m^2
+        totalflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+        
+        E_mub, data_mub = np.loadtxt("DataFiles/SNSflux_numub.txt", unpack=True)
+        rawflux_mub = InterpolatedUnivariateSpline(E_mub, data_mub, k = 1)
+        
+        #Normalise the raw fluxes (DAR neutrinos only go up to the end point
+        # of the Michel spectrum, ~ 53.5 MeV)
+        DAR_norm = quad(rawflux_mub, np.min(E_mub), 54.0)[0]
+        flux_mub = InterpolatedUnivariateSpline(E_mub, data_mub*totalflux/DAR_norm, k = 1)    
+        
+        E_e, data_e = np.loadtxt("DataFiles/SNSflux_nue.txt", unpack=True)
+        flux_e = InterpolatedUnivariateSpline(E_e, data_e*totalflux/DAR_norm, k = 1)
+        
+        E_mu, data_mu = np.loadtxt("DataFiles/SNSflux_numu.txt", unpack=True)
+        flux_mu = InterpolatedUnivariateSpline(E_mu, data_mu*totalflux/DAR_norm, k = 1)
 
-    neutrino_flux = InterpolatedUnivariateSpline(1e-3*data[:,0], 1e3*data[:,1]*normalisation, k = 1)
-            #bounds_error=False, fill_value=1e-20)
-    Enu_min = 1e-3*np.min(data[:,0])
-    Enu_max = 1e-3*np.max(data[:,0])
-    #print Enu_min, Enu_max
+        Enu_min = 1.0
+        Enu_max = 300.0
     
+        Evals = np.logspace(np.log10(Enu_min), np.log10(Enu_max), 1000)
+        neutrino_flux = InterpolatedUnivariateSpline(Evals,flux_mu(Evals) + flux_mub(Evals) + flux_e(Evals), k = 1)
+        
     
 #Calculate recoil rate (in events/kg/keV/day)
 def differentialRate_full(E_R, A, Z, gsq=0.0, m_med=1000.0, mu_nu=0.0):
@@ -434,10 +469,17 @@ def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0, tab=False):
     
     m_N = A*1.66054e-27 #Nucleus mass in kg
     rate = quad(integrand, E_min, E_max, epsrel=1e-4)[0]/m_N
+    
+    if (nu_source == "SNS"):
+        if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
+            #Check the loadNeutrinoFlux() for a descripion of this normalisation
+            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            rate += Nflux*xsec_CEvNS(E_R, 29.65, A, Z, gsq, m_med)/m_N
+    
     return 86400.0*rate #Convert from (per second) to (per day)
     
 #Calculate recoil rate (in events/kg/keV/day)
-def differentialRate_NSI(E_R, A, Z, gsq=0.0, m_med=1000.0, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_tau=0, Eps_d_tau=0):
+def differentialRate_NSI(E_R, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_tau=0, Eps_d_tau=0):
     """
     Calculates the differential recoil rate for
     Coherent Elastic Neutrino-Nucleus Scattering
@@ -492,6 +534,14 @@ def differentialRate_NSI(E_R, A, Z, gsq=0.0, m_med=1000.0, Eps_u_e, Eps_d_e, Eps
     
     m_N = A*1.66054e-27 #Nucleus mass in kg
     rate = quad(integrand, E_min, E_max, epsrel=1e-4)[0]/m_N
+    
+    if (nu_source == "SNS"):
+        if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
+            #Check the loadNeutrinoFlux() for a descripion of this normalisation
+            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            rate += Nflux*xsec_NSI(E_R, 29.65, A, Z, Eps_u_e, Eps_d_e,\
+                                 Eps_u_mu, Eps_d_mu, Eps_u_tau, Eps_d_tau)/m_N
+            
     return 86400.0*rate #Convert from (per second) to (per day)
     
 #Calculate recoil rate (in events/kg/keV/day)
@@ -545,6 +595,13 @@ def differentialRate_scalar(E_R, A, Z, Q_S=0.0, m_S=1000.0, tab=False):
     
     m_N = A*1.66054e-27 #Nucleus mass in kg
     rate = quad(integrand, E_min, E_max, epsrel=1e-4)[0]/m_N
+    
+    if (nu_source == "SNS"):
+        if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
+            #Check the loadNeutrinoFlux() for a descripion of this normalisation
+            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            rate += Nflux*xsec_scalar(E_R, 29.65, A, Z, Q_S, m_S)/m_N
+            
     return 86400.0*rate #Convert from (per second) to (per day)
     
 #Calculate recoil rate (in events/kg/keV/day)
@@ -602,6 +659,13 @@ def differentialRate_magnetic(E_R, A, Z, mu_nu=0.0):
     
     m_N = A*1.66054e-27 #Nucleus mass in kg
     rate = quad(integrand, E_min, E_max)[0]/m_N
+    
+    if (nu_source == "SNS"):
+        if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
+            #Check the loadNeutrinoFlux() for a descripion of this normalisation
+            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            rate += Nflux*xsec_magneticNS(E_R, 29.65, A, Z, gsq, m_med)/m_N
+    
     return 86400*rate #Convert from (per second) to (per day)
     
 #-----------------
