@@ -1,6 +1,6 @@
 # CEvNS
 
-[![Binder](http://mybinder.org/badge.svg)](https://beta.mybinder.org/v2/gh/bradkav/CEvNS)
+[![Binder](http://mybinder.org/badge.svg)](https://beta.mybinder.org/v2/gh/bradkav/CEvNS/master)
 
 Code for calculating Coherent Elastic Neutrino-Nucleus Scattering (CEvNS) cross sections. Cross sections taken largely from [arXiv:1604.01025](https://arxiv.org/abs/1604.01025) and [arXiv:1701.07443](https://arxiv.org/abs/1701.07443).
 
