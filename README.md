@@ -4,7 +4,7 @@
 
 Code for calculating Coherent Elastic Neutrino-Nucleus Scattering (CEvNS) cross sections. Cross sections taken largely from [arXiv:1604.01025](https://arxiv.org/abs/1604.01025) and [arXiv:1701.07443](https://arxiv.org/abs/1701.07443).
 
-See the **example code** in the iPython notebook (`CEvNS-examples.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS-examples.ipynb) or click the 'Launch Binder' button to view an interactive notebook. For working with the **recent COHERENT data** ([arXiv:1708.01294](https://arxiv.org/abs/1708.01294)), checkout the notebook `COHERENT.ipynb` [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/COHERENT.ipynb).
+See the **example code** in the iPython notebook (`CEvNS-examples.ipynb`) [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/CEvNS-examples.ipynb) or click the 'Launch Binder' button to view an interactive notebook. For working with the **recent COHERENT data** ([arXiv:1708.01294](https://arxiv.org/abs/1708.01294)), check out the notebook `COHERENT.ipynb` [here](https://nbviewer.jupyter.org/github/bradkav/CEvNS/blob/master/COHERENT.ipynb).
 
 Currently includes the Standard Model contribution to the CEvNS cross section, along with the contribution from the following Simplified Model Lagrangian:
 
