@@ -14,6 +14,8 @@ Note that the CEvNS cross section depends only on the product of g_v and g_q, so
 
 If you are using the NSI rate, you do not need to add the Standard Model rate too - the NSI rate includes (and modifies) the normalisation of Standard Model CEvNS.
 
+### Version History
+
 **Version 1.5 (21/09/2017):** Now stores separate fluxes for different neutrino species (specify in the differential rate functions using nu_flavor=('e', 'eb', 'mu', 'mub', 'tau', 'taub', or 'all')).  
 **Version 1.4 (20/09/2017):** Now includes COHERENT@SNS fluxes (simply use `loadNeutrinoFlux("SNS")` to initialise). Results from the COHERENT experiment are reproduced in the notebook `COHERENT.ipynb`.  
 **Version 1.3 (13/09/2017):** Updated to calculate rate including NSI interactions.  
