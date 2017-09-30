@@ -701,12 +701,12 @@ def differentialRate_magnetic(E_R, A, Z, mu_nu=0.0, nu_flavor="all"):
         if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
             #Check the loadNeutrinoFlux() for a descripion of this normalisation
             Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
-            rate += Nflux*xsec_magneticNS(E_R, 29.65, A, Z, gsq, m_med)/m_N
+            rate += Nflux*xsec_magneticNS(E_R, 29.65, A, Z, mu_nu)/m_N
     
     return 86400*rate #Convert from (per second) to (per day)
     
 #-----------------
-def differentialRate_tabulate(E_min, E_max, A, Z, m_med=1000.0):
+def differentialRate_tabulate(E_min, E_max, A, Z, m_med=1000.0, nu_flavor='all'):
     global diffrate_A, diffrate_B
     
     print " Tabulating dR/dE for m_med =", '%.2e' % m_med, "MeV..."
@@ -716,10 +716,10 @@ def differentialRate_tabulate(E_min, E_max, A, Z, m_med=1000.0):
     Rvals_B = 0.0*Evals
     alpha = 1.0
     for i, Ei in enumerate(Evals):
-        Rvals_A[i] = np.sqrt(differentialRate_CEvNS(Ei, A, Z, gsq=0.0, m_med=m_med))
+        Rvals_A[i] = np.sqrt(differentialRate_CEvNS(Ei, A, Z, gsq=0.0, m_med=m_med,nu_flavor=nu_flavor))
         Rvals_B[i] = (1.0/(4.0*alpha*Rvals_A[i]))*(\
-                        differentialRate_CEvNS(Ei, A, Z, gsq=alpha, m_med=m_med) - \
-                        differentialRate_CEvNS(Ei, A, Z, gsq=-alpha, m_med=m_med))
+                        differentialRate_CEvNS(Ei, A, Z, gsq=alpha, m_med=m_med,nu_flavor=nu_flavor) - \
+                        differentialRate_CEvNS(Ei, A, Z, gsq=-alpha, m_med=m_med,nu_flavor=nu_flavor))
         #Check signs!
         #Rvals_B[i] = np.sqrt(differentialRate_CEvNS(Ei, A, Z, gsq=Rvals_A[i], m_med=m_med))*1.0/Rvals_A[i] - 1.0      
    
