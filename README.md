@@ -40,7 +40,7 @@ where
 - `m_med` is the mediator mass (in MeV).
 
 *Contribution from scalar exchange (a new mediator S):*  
-`xsec_CEvNS(E_R, E_nu, A, Z, gsq=0.0, m_S=1000.0)`
+`xsec_scalar(E_R, E_nu, A, Z, gsq=0.0, m_S=1000.0)`
 
 where  
 - `E_R` is the nuclear recoil energy (in keV)
@@ -75,7 +75,7 @@ Calculate differential rates in units of counts/keV/kg/day (parameter definition
 `differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0, nu_flavor='all')`
 
 *Contribution from scalar exchange (new S mediator):*  
-`differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0, nu_flavor='all')`
+`differentialRate_scalar(E_R, A, Z, gsq=0.0, m_S=1000.0, nu_flavor='all')`
 
 *Contribution from NSI (modification of SM rate):*  
 `differentialRate_NSI(E_R, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_tau=0, Eps_d_tau=0, nu_flavor='all')`
