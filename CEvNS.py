@@ -1,10 +1,14 @@
 """
-CEvNS.py - Version 1.5 - 21/09/2017
+CEvNS.py - Version 1.6 - 06/11/2017
 
 Summary: 
 Code for calculating differential cross section
 for Coherent Elastic Neutrino Nucleus Scattering (CEvNS).
 
+Version 1.6: Updated and checked code for Scalar cross section and
+             differential rate. Can now calculate scalar xsec
+             in terms of product of scalar coupling to quarks
+             and neutrinos (assuming universal quark couplings)
 Version 1.5: Added separate fluxes for different neutrino species
              You can now specify the flavor of neutrino you're 
              interested in, using the nu_flavor variable in the
@@ -197,13 +201,16 @@ def xsec_magneticNS(E_R, E_nu, A, Z, mu_nu=0.0):
     #and multiply by form factor and coherent charge enhancement
     return 1e-6*(1.98e-14)**2*xsec_mag*(Z**2*HelmFormFactor(E_R, A))
     
-def xsec_scalar(E_R, E_nu, A, Z, Q_S=0.0, m_S=1000.0):
+def xsec_scalar(E_R, E_nu, A, Z, gsq=0.0, m_S=1000.0):
     """
     Calculates contribution to the differential cross section for
     Coherent Elastic Neutrino-Nucleus Scattering from
-    a new scalar mediator.
+    a new scalar mediator, S. 
     
-    See arXiv:1701.07443 - Eq. (3.6)
+    NB: we assume equal coupling to all quarks.
+    
+    See arXiv:1701.07443 - Eq. (3.6).
+    See arXiv:1604.01025 - Tab. IV.
     
     Parameters
     ----------
@@ -216,13 +223,15 @@ def xsec_scalar(E_R, E_nu, A, Z, Q_S=0.0, m_S=1000.0):
     Z   : int
         Atomic number of target nucleus
 
-    G_S   : float, optional
-        Scalar charge of the nucleus
-    
+    gsq   : float, optional
+        Product of couplings of the new mediator to quark
+        scalar current and neutrino scalar current. 
+        For now, we assume that the coupling to all quarks
+        is equal.
+        Set to zero by default.
     m_S   : float, optional
         Mass of new scalar mediator (in MeV). Set to 1000 MeV
         by default.
-  
     
     Returns
     -------
@@ -238,7 +247,7 @@ def xsec_scalar(E_R, E_nu, A, Z, Q_S=0.0, m_S=1000.0):
     #Note: m_A in GeV, E_R in keV, E_nu in MeV
     
     #Calculate total scalar charge of the nucleus
-    #G_S = Q_S*1.0/(1e-6*G_FERMI*m_S**2)
+    Q_S = gsq*(14.0*A + 1.1*Z)
     
     xsec_scalar = (E_R/(4.0*np.pi))*m_A**2/(E_nu**2*(q**2 + m_S**2)**2)
     
@@ -574,9 +583,19 @@ def differentialRate_NSI(E_R, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Ep
     return 86400.0*rate #Convert from (per second) to (per day)
     
 #Calculate recoil rate (in events/kg/keV/day)
-def differentialRate_scalar(E_R, A, Z, Q_S=0.0, m_S=1000.0, tab=False, nu_flavor="all"):
+def differentialRate_scalar(E_R, A, Z, gsq=0.0, m_S=1000.0, tab=False, nu_flavor="all"):
     """
-
+    Calculates the differential recoil rate for
+    Coherent Elastic Neutrino-Nucleus Scattering 
+    from a new scalar mediator, S. 
+    
+    NB: we assume equal coupling to all quarks.
+    
+    See arXiv:1701.07443 - Eq. (3.6).
+    See arXiv:1604.01025 - Tab. IV.
+    
+    Checks to see whether the neutrino flux table
+    has been loaded (and loads it if not...)
     
     Parameters
     ----------
@@ -587,17 +606,21 @@ def differentialRate_scalar(E_R, A, Z, Q_S=0.0, m_S=1000.0, tab=False, nu_flavor
     Z   : int
         Atomic number of target nucleus
 
-    Q_S   : float, optional
-        ...
+    gsq   : float, optional
+        Product of couplings of the new mediator to quark
+        scalar current and neutrino scalar current. 
+        For now, we assume that the coupling to all quarks
+        is equal.
+        Set to zero by default.
     m_S   : float, optional
-        ...
-    
+        Mass of new scalar mediator (in MeV). Set to 1000 MeV
+        by default.
     
     Returns
     -------
     float
-        Differential recoil rate
-        (in /kg/keV/day)
+        Differential scattering cross section 
+        (in cm^2/keV)
     """
     
     #First, check that the neutrino flux has been loaded
@@ -606,10 +629,10 @@ def differentialRate_scalar(E_R, A, Z, Q_S=0.0, m_S=1000.0, tab=False, nu_flavor
         loadNeutrinoFlux()
     
     if (nu_flavor == "all"):
-        integrand = lambda E_nu: xsec_scalar(E_R, E_nu, A, Z, Q_S, m_S)\
+        integrand = lambda E_nu: xsec_scalar(E_R, E_nu, A, Z, gsq, m_S)\
                         *neutrino_flux_tot(E_nu)
     else:
-        integrand = lambda E_nu: xsec_scalar(E_R, E_nu, A, Z, Q_S, m_S)\
+        integrand = lambda E_nu: xsec_scalar(E_R, E_nu, A, Z, gsq, m_S)\
                         *neutrino_flux_list[flav[nu_flavor]](E_nu)
     
     #Minimum neutrino energy required (in MeV)
@@ -619,9 +642,6 @@ def differentialRate_scalar(E_R, A, Z, Q_S=0.0, m_S=1000.0, tab=False, nu_flavor
     
     #For reactor neutrinos, set E_max:
     E_max = Enu_max
-    
-    #For reactor neutrinos, set E_max:
-    E_max = 10.0
     
     if (E_min > E_max):
         return 0
@@ -633,7 +653,7 @@ def differentialRate_scalar(E_R, A, Z, Q_S=0.0, m_S=1000.0, tab=False, nu_flavor
         if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
             #Check the loadNeutrinoFlux() for a descripion of this normalisation
             Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
-            rate += Nflux*xsec_scalar(E_R, 29.65, A, Z, Q_S, m_S)/m_N
+            rate += Nflux*xsec_scalar(E_R, 29.65, A, Z, gsq, m_S)/m_N
             
     return 86400.0*rate #Convert from (per second) to (per day)
     
