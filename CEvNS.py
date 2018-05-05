@@ -1,19 +1,9 @@
 """
-CEvNS.py - Version 1.6 - 06/11/2017
+CEvNS.py - Release Version 1.0 - 05/05/2018
 
 Summary: 
 Code for calculating differential cross section
 for Coherent Elastic Neutrino Nucleus Scattering (CEvNS).
-
-Version 1.6: Updated and checked code for Scalar cross section and
-             differential rate. Can now calculate scalar xsec
-             in terms of product of scalar coupling to quarks
-             and neutrinos (assuming universal quark couplings)
-Version 1.5: Added separate fluxes for different neutrino species
-             You can now specify the flavor of neutrino you're 
-             interested in, using the nu_flavor variable in the
-             differential rate functions ('e', 'eb', 'mu', 'mub', 'tau', 'taub', or 'all')
-Version 1.4: Added neutrino fluxes for COHERENT@SNS
 
 Cross sections mainly taken from arXiv:1604.01025.
 See also arXiv:1701.07443.
@@ -369,6 +359,9 @@ def loadNeutrinoFlux(source="CHOOZ"):
     
         Enu_min = 1.0
         Enu_max = 300.0
+    else:
+        raise ValueError("CEvNS.py: source '" + source + "' not recognised...\nTry source == CHOOZ or source = SNS...") 
+
     
     #Now tabulate the total neutrino flux
     Evals = np.logspace(np.log10(Enu_min), np.log10(Enu_max), 1000)
