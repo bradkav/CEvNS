@@ -51,7 +51,7 @@ where
 - `E_R` is the nuclear recoil energy (in keV)
 - `E_nu` is the neutrino energy (in MeV)
 - (`A`, `Z`) are the mass and atomic number of the target nucleus
-- `gsq` is the product of the mediator coupling to LH neutrinos and quark vector currents (dimensionless)
+- `gsq` is the product of the mediator coupling to LH neutrinos and quark vector currents (g_nu*g_q, dimensionless)
 - `m_med` is the mediator mass (in MeV).
 
 *Contribution from scalar exchange (a new mediator S):*  
@@ -61,7 +61,7 @@ where
 - `E_R` is the nuclear recoil energy (in keV)
 - `E_nu` is the neutrino energy (in MeV)
 - (`A`, `Z`) are the mass and atomic number of the target nucleus
-- `gsq` is the product of scalar coupling to neutrinos and quark scalar currents (dimensionless)
+- `gsq` is the product of scalar coupling to neutrinos and quark scalar currents (g_nu*g_q, dimensionless)
 - `m_S` is the mediator mass (in MeV).
 
 *Contribution from neutrino magnetic moment:*  
