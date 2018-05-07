@@ -8,7 +8,7 @@ Currently includes (among other things) the Standard Model contribution to the C
 
 #### Requirements
 
-The code is compatible with Python2.7 and requires [numpy](http://www.numpy.org) and [scipy](https://www.scipy.org). 
+The code should be compatible with Python2.7 and Python3 and requires [numpy](http://www.numpy.org) and [scipy](https://www.scipy.org). 
 
 Some of the associated notebooks require [matplotlib](https://matplotlib.org) and [tqdm](https://github.com/tqdm/tqdm).
 

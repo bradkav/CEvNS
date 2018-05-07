@@ -16,6 +16,8 @@ Author: Bradley J Kavanagh
 Please report any problems to: bradkav@gmail.com
 """
 
+from __future__ import print_function
+
 import numpy as np
 from scipy.interpolate import interp1d, UnivariateSpline,InterpolatedUnivariateSpline
 from scipy.integrate import quad
@@ -472,7 +474,7 @@ def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0, tab=False, nu_flavo
     
     #First, check that the neutrino flux has been loaded
     if (neutrino_flux_tot == None):
-        print " CEvNS.py: Loading neutrino flux for the first time..."
+        print(" CEvNS.py: Loading neutrino flux for the first time...")
         loadNeutrinoFlux()
     
     if (nu_flavor == "all"):
@@ -540,7 +542,7 @@ def differentialRate_NSI(E_R, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Ep
     
     #First, check that the neutrino flux has been loaded
     if (neutrino_flux_tot == None):
-        print " CEvNS.py: Loading neutrino flux for the first time..."
+        print(" CEvNS.py: Loading neutrino flux for the first time...")
         loadNeutrinoFlux()
     
     if (nu_flavor == "all"):
@@ -618,7 +620,7 @@ def differentialRate_scalar(E_R, A, Z, gsq=0.0, m_S=1000.0, tab=False, nu_flavor
     
     #First, check that the neutrino flux has been loaded
     if (neutrino_flux_tot == None):
-        print " CEvNS.py: Loading neutrino flux for the first time..."
+        print(" CEvNS.py: Loading neutrino flux for the first time...")
         loadNeutrinoFlux()
     
     if (nu_flavor == "all"):
@@ -722,7 +724,7 @@ def differentialRate_magnetic(E_R, A, Z, mu_nu=0.0, nu_flavor="all"):
 def differentialRate_tabulate(E_min, E_max, A, Z, m_med=1000.0, nu_flavor='all'):
     global diffrate_A, diffrate_B
     
-    print " Tabulating dR/dE for m_med =", '%.2e' % m_med, "MeV..."
+    print(" Tabulating dR/dE for m_med =", '%.2e' % m_med, "MeV...")
     Evals = np.logspace(np.log10(E_min), np.log10(E_max),1000)
     
     Rvals_A = 0.0*Evals
