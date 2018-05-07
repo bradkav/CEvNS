@@ -24,7 +24,7 @@ For working with the **recent COHERENT data** ([arXiv:1708.01294](https://arxiv.
 This code was used to generate plots and perform some calculations for the following projects:
 
 > J Billard, J Johnston & B J Kavanagh, "*Prospects for exploring New Physics in
- Coherent Elastic Neutrino-Nucleus Scattering*" (2018), [arXiv:1805.?????](https://arxiv.org/abs/1805.?????)
+ Coherent Elastic Neutrino-Nucleus Scattering*" (2018), [arXiv:1805.01798](https://arxiv.org/abs/1805.01798)
 
 #### Contact
 
