@@ -111,7 +111,7 @@ Note that if you are using the NSI or vector mediator rates, you do not need to 
 
 # Version History
 
-**Release Version 1.0 (05/05/2018):** Release version, including plotting and examples routines, associated with [arXiv:1805.?????](https://arxiv.org/abs/1805.?????).
+**Release Version 1.0 (05/05/2018):** Release version, including plotting and examples routines, associated with [arXiv:1805.01798](https://arxiv.org/abs/1805.01798).
 
 **Pre-release Version 1.6 (06/11/2017):** Updated and checked code for Scalar cross section and differential rate.  
 **Pre-release Version 1.5 (21/09/2017):** Now stores separate fluxes for different neutrino species (specify in the differential rate functions using nu_flavor=('e', 'eb', 'mu', 'mub', 'tau', 'taub', or 'all')).  
