@@ -146,7 +146,7 @@ def xsec_CEvNS(E_R, E_nu, A, Z, gsq=0.0, m_med=1000.0):
     
     #Convert from (GeV^-3) to (cm^2/keV)
     #and multiply by form factor and New Physics correction
-    return G_V*G_V*xsec_SM*1e-6*(1.98e-14)*(1.98e-14)*HelmFormFactor(E_R, A)
+    return G_V*G_V*xsec_SM*1e-6*(1.97e-14)*(1.97e-14)*HelmFormFactor(E_R, A)
     
     
 def xsec_magneticNS(E_R, E_nu, A, Z, mu_nu=0.0):
@@ -191,7 +191,7 @@ def xsec_magneticNS(E_R, E_nu, A, Z, mu_nu=0.0):
     
     #Convert from (GeV^-3) to (cm^2/keV)
     #and multiply by form factor and coherent charge enhancement
-    return 1e-6*(1.98e-14)**2*xsec_mag*(Z**2*HelmFormFactor(E_R, A))
+    return 1e-6*(1.97e-14)**2*xsec_mag*(Z**2*HelmFormFactor(E_R, A))
     
 def xsec_scalar(E_R, E_nu, A, Z, gsq=0.0, m_S=1000.0):
     """
@@ -251,7 +251,7 @@ def xsec_scalar(E_R, E_nu, A, Z, gsq=0.0, m_S=1000.0):
     
     #Convert from (keV GeV^2 MeV^-6) to (cm^2/keV)
     #and multiply by form factor and New Physics correction
-    return Q_S*Q_S*xsec_scalar*1e6*(1.98e-14)*(1.98e-14)*HelmFormFactor(E_R, A)
+    return Q_S*Q_S*xsec_scalar*1e6*(1.97e-14)*(1.97e-14)*HelmFormFactor(E_R, A)
     
     
 def xsec_NSI(E_R, E_nu, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_tau=0, Eps_d_tau=0):
@@ -300,7 +300,7 @@ def xsec_NSI(E_R, E_nu, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Eps_u_ta
     
     #Convert from (GeV^-3) to (cm^2/keV)
     #and multiply by form factor and New Physics correction
-    return xsec_NSI*1e-6*(1.98e-14)*(1.98e-14)*HelmFormFactor(E_R, A)
+    return xsec_NSI*1e-6*(1.97e-14)*(1.97e-14)*HelmFormFactor(E_R, A)
     
     
     
