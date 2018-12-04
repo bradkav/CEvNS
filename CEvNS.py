@@ -337,10 +337,11 @@ def loadNeutrinoFlux(source="CHOOZ"):
         
     elif (source == "SNS"):
         #0.08 decay-at-rest (DAR) neutrinos per proton
-        #5e20 protons per day (divided by 24*60*60 to get per second)
+        #5.7e20 protons per day (divided by 24*60*60 to get per second)
+        #Thanks to Xurun Huang for pointing out that 5.7e20 is a more accurate number
         #COHERENT detector at a distance of 19.3m from neutrino production point
         #so 4pi surface area is 4pi*19.3m^2
-        Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+        Nflux = 0.08*5.7e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
         
         E_mub, data_mub = np.loadtxt("DataFiles/SNSflux_numub.txt", unpack=True)
         rawflux_mub = InterpolatedUnivariateSpline(E_mub, data_mub, k = 1)
@@ -501,7 +502,7 @@ def differentialRate_CEvNS(E_R, A, Z, gsq=0.0, m_med=1000.0, tab=False, nu_flavo
     if (nu_source == "SNS" and (nu_flavor == "all" or nu_flavor == "mu")):
         if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
             #Check the loadNeutrinoFlux() for a descripion of this normalisation
-            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            Nflux = 0.08*5.7e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
             rate += Nflux*xsec_CEvNS(E_R, 29.65, A, Z, gsq, m_med)/m_N
     
     return 86400.0*rate #Convert from (per second) to (per day)
@@ -571,7 +572,7 @@ def differentialRate_NSI(E_R, A, Z, Eps_u_e, Eps_d_e, Eps_u_mu=0, Eps_d_mu=0, Ep
     if (nu_source == "SNS" and (nu_flavor == "all" or nu_flavor == "mu")):
         if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
             #Check the loadNeutrinoFlux() for a descripion of this normalisation
-            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            Nflux = 0.08*5.7e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
             rate += Nflux*xsec_NSI(E_R, 29.65, A, Z, Eps_u_e, Eps_d_e,\
                                  Eps_u_mu, Eps_d_mu, Eps_u_tau, Eps_d_tau)/m_N
             
@@ -647,7 +648,7 @@ def differentialRate_scalar(E_R, A, Z, gsq=0.0, m_S=1000.0, tab=False, nu_flavor
     if (nu_source == "SNS" and (nu_flavor == "all" or nu_flavor == "mu")):
         if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
             #Check the loadNeutrinoFlux() for a descripion of this normalisation
-            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            Nflux = 0.08*5.7e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
             rate += Nflux*xsec_scalar(E_R, 29.65, A, Z, gsq, m_S)/m_N
             
     return 86400.0*rate #Convert from (per second) to (per day)
@@ -715,7 +716,7 @@ def differentialRate_magnetic(E_R, A, Z, mu_nu=0.0, nu_flavor="all"):
     if (nu_source == "SNS" and (nu_flavor == "all" or nu_flavor == "mu")):
         if (E_min < 29.65): #Add in delta function neutrino flux from muon decay
             #Check the loadNeutrinoFlux() for a descripion of this normalisation
-            Nflux = 0.08*5e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
+            Nflux = 0.08*5.7e20/(24.0*60.0*60.0*4*np.pi*1930.0**2)
             rate += Nflux*xsec_magneticNS(E_R, 29.65, A, Z, mu_nu)/m_N
     
     return 86400*rate #Convert from (per second) to (per day)
