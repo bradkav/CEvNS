@@ -59,16 +59,16 @@ def HelmFormFactor(E, A):
     """
     Input:
         - E (recoil energy in keV)
-        - A (mass number of the nucleus)
+        - A (dimensionless mass number of the nucleus)
     
     Returns the Helm Form factor Fˆ2(E_R)
     """
     
     #Define conversion factor from amu-->keV
-    amu = 931.5*1e3
+    amu = 931.5*1e3 #keV
 
     #Convert recoil energy to momentum transfer q in keV
-    q1 = np.sqrt(2*A*amu*E) #keV
+    q1 = np.sqrt(2*A*amu*E) #sqrt(keV^2) = keV
 
     #Convert q into fm^-1
     q2 = q1*(1e-12/1.97e-7) # fm^-1
