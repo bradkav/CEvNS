@@ -56,23 +56,31 @@ Enu_max = 0
 
 #Helm Form Factor
 def HelmFormFactor(E, A):
+    """
+    Input:
+        - E (recoil energy in keV)
+        - A (mass number of the nucleus)
+    
+    Returns the Helm Form factor Fˆ2(E_R)
+    """
+    
     #Define conversion factor from amu-->keV
     amu = 931.5*1e3
 
     #Convert recoil energy to momentum transfer q in keV
-    q1 = np.sqrt(2*A*amu*E)
+    q1 = np.sqrt(2*A*amu*E) #keV
 
     #Convert q into fm^-1
-    q2 = q1*(1e-12/1.97e-7)
+    q2 = q1*(1e-12/1.97e-7) # fm^-1
     
-    #Calculate nuclear parameters
-    s = 0.9
-    a = 0.52
-    c = 1.23*(A**(1.0/3.0)) - 0.60
-    R1 = np.sqrt(c*c + 7*np.pi*np.pi*a*a/3.0 - 5*s*s)
+    #Calculate nuclear parameters (see https://arxiv.org/abs/hep-ph/0608035)
+    s = 0.9 #fm 
+    a = 0.52 #fm 
+    c = 1.23*(A**(1.0/3.0)) - 0.60 #fm 
+    R1 = np.sqrt(c*c + 7*np.pi*np.pi*a*a/3.0 - 5*s*s) #fm
  
     #Calculate form factor
-    x = q2*R1
+    x = q2*R1 #dimensionless
     J1 = np.sin(x)/(x*x) - np.cos(x)/x
     F = 3*J1/x
     return (F*F)*(np.exp(-(q2*q2*s*s)))
